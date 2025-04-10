@@ -57,6 +57,15 @@ export const login = async (
   }
 };
 
+export const logout = (): { success: boolean } => {
+  // Remove token from all client-side storage
+  localStorage.removeItem('token');
+  sessionStorage.removeItem('token');
+  
+  // Clear cookies if used (optional)  
+  return { success: true };
+};
+
 export const getUserDetails = async (token: string): Promise<User | { error: string }> => {
   try {
     const res = await fetch(`${API_URL}/me`, {

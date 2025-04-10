@@ -245,23 +245,10 @@ export default function SeatGrid({
             value={selectedCount}
             onChange={(e) => setSelectedCount(Number(e.target.value))}
           />
-          {/* <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            className="size-10 bg-yellow-300 p-1.5 rounded-full"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"
-            />
-          </svg> */}
+         
           <div className="flex flex-col items-center">
             <button
-              className=" px-4 py-2 bg-blue-600 border border-blue-600 text-white rounded-r hover:bg-blue-700"
+              className=" px-4 py-2 bg-blue-500 border border-blue-500 text-white rounded-r "
               onClick={suggestSeats}
             >
               Suggest
@@ -269,18 +256,11 @@ export default function SeatGrid({
           </div>
         </div>
       </div>
-      {/* <div className="flex flex-col items-center">
-        <button
-          className="mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          onClick={suggestSeats}
-        >
-          Suggest Seats
-        </button>
-      </div> */}
+     
       <p className="bg-gray-200 text-center rounded-lg w-fit justify-self-center py-1 px-4 mb-3 font-semibold">Engine</p>
 
-      <div className=" bg-gray-50 p-4">
-        <div className="grid grid-cols-7  rounded-lg">{renderSeats()}</div>
+      <div className=" bg-gray-50 shadow-inner border rounded-xl p-4">
+        <div className="grid grid-cols-7 ">{renderSeats()}</div>
       </div>
     </div>
   );

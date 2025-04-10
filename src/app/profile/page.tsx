@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { logout } from "@/services/authServices";
 
 // Interface for the user data and ticket data
 interface User {
@@ -30,11 +31,14 @@ const ProfilePage = () => {
     }
     const fetchUserData = async () => {
       try {
-        const userRes = await fetch("https://train-booking-backend-gray.vercel.app/api/auth/me", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const userRes = await fetch(
+          "https://train-booking-backend-gray.vercel.app/api/auth/me",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         const userData = await userRes.json();
         console.log(userData.user);
         setUser(userData.user);
@@ -62,6 +66,12 @@ const ProfilePage = () => {
     fetchUserData();
   }, []);
 
+  const handleLogout = () => {
+    logout();
+    // Redirect after logout
+    window.location.href = "/book";
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -70,7 +80,7 @@ const ProfilePage = () => {
     <div className="flex justify-center md:py-6 h-dvh">
       <div className="w-full max-w-3xl h-full md:h-fit p-6 bg-white rounded-lg md:border">
         {/* User Profile Section */}
-        <div className="flex items-center mb-6">
+        <div className="flex  mb-6">
           {user?.profilePicture ? (
             <img
               src={user.profilePicture}
@@ -85,6 +95,7 @@ const ProfilePage = () => {
           <div>
             <h2 className="text-2xl font-semibold">{user?.name}</h2>
             <p className="text-gray-500">{user?.email}</p>
+            <button className="text-red-500" onClick={handleLogout}>Logout</button>
           </div>
         </div>
 
@@ -123,7 +134,6 @@ const ProfilePage = () => {
                   <div>
                     <p className="text-gray-500 text-xs">Row</p>
                     <p className="font-medium bg-yellow-200 rounded-sm text-yellow-600 px-1.5 w-fit">
-                      
                       {[
                         ...new Set(bookedTickets.map((ticket) => ticket.row)),
                       ].join(" - ")}

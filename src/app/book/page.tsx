@@ -27,6 +27,19 @@ export default function BookingPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    const fetchBookedSeats = async () => {
+      try {
+        const res = await fetch("https://train-booking-backend-gray.vercel.app/api/bookings/booked"); // change to your actual API
+        const data = await res.json();
+        console.log("Booked seats response:", data.bookedSeats);
+
+        setBookedSeats(data.bookedSeats || []);
+      } catch (err) {
+        console.error("Failed to fetch booked seats", err);
+      }
+    };
+
+    fetchBookedSeats();
 
     if (!token) {
       setLoading(false);
@@ -54,19 +67,7 @@ export default function BookingPage() {
         setLoading(false);
       });
 
-      const fetchBookedSeats = async () => {
-        try {
-          const res = await fetch("https://train-booking-backend-gray.vercel.app/api/bookings/booked"); // change to your actual API
-          const data = await res.json();
-          console.log("Booked seats response:", data.bookedSeats);
-
-          setBookedSeats(data.bookedSeats || []);
-        } catch (err) {
-          console.error("Failed to fetch booked seats", err);
-        }
-      };
-  
-      fetchBookedSeats();
+      
   }, []);
 
   const handleBooking = () => {
@@ -134,7 +135,7 @@ export default function BookingPage() {
         ) : (
           <a
             href="/login"
-            className=" max-w-md text-blue-500 px-4 py-2 rounded text-center hover:bg-blue-700"
+            className=" max-w-md text-blue-500 px-4 py-2 rounded text-center "
           >
             Login
           </a>
@@ -156,7 +157,7 @@ export default function BookingPage() {
         onClick={handleBooking}
         disabled={!user || loading}
         className={`mt-6 px-6 py-3 text-lg sticky bottom-0 md:rounded md:mb-5 w-screen md:max-w-lg text-white font-medium ${
-          (user || !loading) 
+          (user && !loading) 
             ? "bg-green-600 "
             : "bg-green-300 cursor-not-allowed"
         }`}
