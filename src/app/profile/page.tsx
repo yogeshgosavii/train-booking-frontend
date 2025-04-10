@@ -30,7 +30,7 @@ const ProfilePage = () => {
     }
     const fetchUserData = async () => {
       try {
-        const userRes = await fetch("http://localhost:5000/api/auth/me", {
+        const userRes = await fetch("https://train-booking-backend-gray.vercel.app/api/auth/me", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -40,7 +40,7 @@ const ProfilePage = () => {
         setUser(userData.user);
 
         const ticketsRes = await fetch(
-          "http://localhost:5000/api/bookings/my-bookings",
+          "https://train-booking-backend-gray.vercel.app/api/bookings/my-bookings",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -167,7 +167,7 @@ const ProfilePage = () => {
                       );
                       try {
                         const response = await fetch(
-                          "http://localhost:5000/api/bookings/cancel-booking",
+                          "https://train-booking-backend-gray.vercel.app/api/bookings/cancel-booking",
                           {
                             method: "DELETE",
                             headers: {

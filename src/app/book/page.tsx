@@ -33,7 +33,7 @@ export default function BookingPage() {
       return;
     }
 
-    fetch("http://localhost:5000/api/auth/me", {
+    fetch("https://train-booking-backend-gray.vercel.app/api/auth/me", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -56,7 +56,7 @@ export default function BookingPage() {
 
       const fetchBookedSeats = async () => {
         try {
-          const res = await fetch("http://localhost:5000/api/bookings/booked"); // change to your actual API
+          const res = await fetch("https://train-booking-backend-gray.vercel.app/api/bookings/booked"); // change to your actual API
           const data = await res.json();
           setBookedSeats(data.bookedSeats || []);
         } catch (err) {
@@ -87,7 +87,7 @@ export default function BookingPage() {
     setIsBooking(true)
     console.log("Booking seats:", seatsToBook);
 
-    fetch("http://localhost:5000/api/bookings/book", {
+    fetch("https://train-booking-backend-gray.vercel.app/api/bookings/book", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -32,19 +32,7 @@ export default function SeatGrid({
   // const [suggestedSeats, setSuggestedSeats] = useState<number[]>([])
   // const [manualSeats, setManualSeats] = useState<number[]>([])
   // const [bookedSeats, setBookedSeats] = useState<number[]>([]);
-  useEffect(() => {
-    const fetchBookedSeats = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/api/bookings/booked"); // change to your actual API
-        const data = await res.json();
-        setBookedSeats(data.bookedSeats || []);
-      } catch (err) {
-        console.error("Failed to fetch booked seats", err);
-      }
-    };
-
-    fetchBookedSeats();
-  }, []);
+ 
 
   useEffect(() => {
     if (selectedCount > 0) {

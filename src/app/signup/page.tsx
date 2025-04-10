@@ -1,31 +1,31 @@
 'use client'
 
 import { useState } from 'react'
+import { signup } from '@/services/authServices'
+import { useRouter } from 'next/navigation'
+
 
 export default function SignupPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
+  const router = useRouter()
+
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
 
     try {
-      const res = await fetch('http://localhost:5000/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
-      })
+      const data = await signup( name, email, password )
 
-      const data = await res.json()
 
-      if (res.ok) {
+      if (data && data.token) {
         localStorage.setItem('token', data.token)
         setMessage('Signup successful!')
-        // optionally redirect or update UI
+        router.push('/book') 
       } else {
-        setMessage(data.error || 'Signup failed')
+        setMessage('Signup failed')
       }
     } catch (err) {
       console.error(err)
