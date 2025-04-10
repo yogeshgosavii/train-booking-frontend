@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api/auth';
+const API_URL = 'https://train-booking-backend-gray.vercel.app/api/auth';
 
 export interface User {
   id: number;

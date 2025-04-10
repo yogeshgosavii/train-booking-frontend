@@ -58,6 +58,8 @@ export default function BookingPage() {
         try {
           const res = await fetch("https://train-booking-backend-gray.vercel.app/api/bookings/booked"); // change to your actual API
           const data = await res.json();
+          console.log("Booked seats response:", data.bookedSeats);
+
           setBookedSeats(data.bookedSeats || []);
         } catch (err) {
           console.error("Failed to fetch booked seats", err);
