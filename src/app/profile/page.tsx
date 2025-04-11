@@ -77,6 +77,14 @@ const ProfilePage = () => {
     return <div>Loading...</div>;
   }
 
+  if(!user){
+    return (
+      <div className="flex justify-center m-10 h-dvh">
+        <p className="text-gray-500">No user data found. <a className="text-blue-500 font-semibold" href="/login">Log in</a></p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex justify-center md:py-6 h-dvh">
       <div className="w-full max-w-3xl h-full md:h-fit p-6 bg-white rounded-lg md:border">
