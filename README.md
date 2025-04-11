@@ -1,4 +1,6 @@
-# Train Booking Frontend
+# Train Booking Frontend Live
+🎯 **Live Frontend:** [Train Booking Frontend Live](https://train-booking-frontend-mu.vercel.app/)
+
 
 This is the frontend application for a **Train Seat Reservation** system. The app allows users to log in, sign up, check the available seats for a specific train, book tickets, and view their booking details. Built with **Next.js**, **React**, and **Tailwind CSS**, the UI is clean, minimal, and responsive.
 
@@ -32,7 +34,7 @@ This is the frontend application for a **Train Seat Reservation** system. The ap
 - **Next.js** – Framework for SSR and routing.
 - **React** – UI library for components and state.
 - **Tailwind CSS** – Utility-first CSS framework.
-- **JavaScript (ES6+)**
+- **JavaScript (ES6+) || Typescript**
 
 ---
 
