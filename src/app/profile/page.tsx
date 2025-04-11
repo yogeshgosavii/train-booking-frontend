@@ -3,13 +3,14 @@
 import React, { useEffect, useState } from "react";
 import { logout } from "@/services/authServices";
 
-// Interface for the user data and ticket data
+// Interface for the user data
 interface User {
   name: string;
   email: string;
   profilePicture: string;
 }
 
+// Interface for the booked ticket data
 interface Ticket {
   ticketId: string;
   seat: string;
@@ -18,19 +19,21 @@ interface Ticket {
 }
 
 const ProfilePage = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [bookedTickets, setBookedTickets] = useState<Ticket[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [user, setUser] = useState<User | null>(null); // State to hold user info
+  const [bookedTickets, setBookedTickets] = useState<Ticket[]>([]); // State for user's booked tickets
+  const [loading, setLoading] = useState<boolean>(true); // Loading state
 
+  // Fetch user data and bookings on component mount
   useEffect(() => {
     const token = localStorage.getItem("token");
-
     if (!token) {
-      setLoading(false);
+      setLoading(false); // Stop loading if token is not present
       return;
     }
+
     const fetchUserData = async () => {
       try {
+        // Fetch user details
         const userRes = await fetch(
           "https://train-booking-backend-gray.vercel.app/api/auth/me",
           {
@@ -40,9 +43,9 @@ const ProfilePage = () => {
           }
         );
         const userData = await userRes.json();
-        console.log(userData.user);
         setUser(userData.user);
 
+        // Fetch user's booked tickets
         const ticketsRes = await fetch(
           "https://train-booking-backend-gray.vercel.app/api/bookings/my-bookings",
           {
@@ -52,26 +55,24 @@ const ProfilePage = () => {
           }
         );
         const ticketsData = await ticketsRes.json();
-        console.log(ticketsData.myBookedSeats);
-
         setBookedTickets(ticketsData.myBookedSeats);
-
-        setLoading(false);
       } catch (error) {
         console.error("Error fetching user data:", error);
-        setLoading(false);
+      } finally {
+        setLoading(false); // End loading in both success and error scenarios
       }
     };
 
     fetchUserData();
   }, []);
 
+  // Handle logout and redirect to the booking page
   const handleLogout = () => {
     logout();
-    // Redirect after logout
     window.location.href = "/book";
   };
 
+  // Show loading spinner or message while data is being fetched
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -80,7 +81,7 @@ const ProfilePage = () => {
     <div className="flex justify-center md:py-6 h-dvh">
       <div className="w-full max-w-3xl h-full md:h-fit p-6 bg-white rounded-lg md:border">
         {/* User Profile Section */}
-        <div className="flex  mb-6">
+        <div className="flex mb-6">
           {user?.profilePicture ? (
             <img
               src={user.profilePicture}
@@ -95,7 +96,9 @@ const ProfilePage = () => {
           <div>
             <h2 className="text-2xl font-semibold">{user?.name}</h2>
             <p className="text-gray-500">{user?.email}</p>
-            <button className="text-red-500" onClick={handleLogout}>Logout</button>
+            <button className="text-red-500" onClick={handleLogout}>
+              Logout
+            </button>
           </div>
         </div>
 
@@ -104,7 +107,7 @@ const ProfilePage = () => {
           <h3 className="text-xl font-semibold mb-4">Booked Tickets</h3>
           {bookedTickets.length > 0 ? (
             <div className="border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-              {/* Ticket header */}
+              {/* Header showing total booked seats */}
               <div className="bg-blue-600 p-4 text-white">
                 <div className="flex justify-between items-center">
                   <h4 className="font-bold">Your Booking</h4>
@@ -115,8 +118,9 @@ const ProfilePage = () => {
                 </div>
               </div>
 
-              {/* Ticket body */}
+              {/* Ticket Info */}
               <div className="p-4 bg-white">
+                {/* Date and Row display */}
                 <div className="grid grid-cols-2 gap-4 mb-3">
                   <div>
                     <p className="text-gray-500 text-xs">Date</p>
@@ -137,11 +141,11 @@ const ProfilePage = () => {
                       {[
                         ...new Set(bookedTickets.map((ticket) => ticket.row)),
                       ].join(" - ")}
-                    </p>{" "}
+                    </p>
                   </div>
                 </div>
 
-                {/* Seats display */}
+                {/* Seat Numbers Display */}
                 <div className="mb-4">
                   <p className="text-gray-500 text-xs mb-1">Seat Numbers</p>
                   <div className="flex flex-wrap gap-2">
@@ -156,19 +160,7 @@ const ProfilePage = () => {
                   </div>
                 </div>
 
-                {/* Barcode and ID */}
-                <div className="pt-3 border-t border-gray-100">
-                  <div className="flex justify-between items-end">
-                    <div>
-                      <p className="text-gray-500 text-xs">Booking ID</p>
-                      <p className="font-mono text-sm">
-                        {bookedTickets[0].ticketId}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Cancel button */}
+                {/* Cancel Booking Button */}
                 <div className="mt-4">
                   <button
                     onClick={async () => {
@@ -193,7 +185,7 @@ const ProfilePage = () => {
                         const result = await response.json();
                         if (response.ok) {
                           alert("Booking cancelled successfully");
-                          // Refresh the bookings or update state
+                          // You might want to re-fetch bookings or update state here
                         } else {
                           alert(result.error || "Failed to cancel booking");
                         }

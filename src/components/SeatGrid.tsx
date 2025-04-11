@@ -3,13 +3,11 @@
 import React, { useEffect, useState } from "react";
 import clsx from "clsx";
 
+// Constants for seat configuration
 const TOTAL_SEATS = 80;
 const FULL_ROW_SIZE = 7;
 const FULL_ROW_COUNT = 11;
 const LAST_ROW_SIZE = 3;
-
-// Example: pretend these are booked by other users
-// const bookedSeats = [2, 3, 6, 10, 25, 26, 27, 41, 42]
 
 interface SeatGridProps {
   manualSeats: number[];
@@ -29,11 +27,8 @@ export default function SeatGrid({
   setBookedSeats
 }: SeatGridProps) {
   const [selectedCount, setSelectedCount] = useState(0);
-  // const [suggestedSeats, setSuggestedSeats] = useState<number[]>([])
-  // const [manualSeats, setManualSeats] = useState<number[]>([])
-  // const [bookedSeats, setBookedSeats] = useState<number[]>([]);
- 
 
+  // Whenever selected seat count changes, find best suggestion
   useEffect(() => {
     if (selectedCount > 0) {
       const suggestion = findBestSeats(selectedCount);
@@ -42,67 +37,71 @@ export default function SeatGrid({
     }
   }, [selectedCount]);
 
+  // Main logic to suggest best seats based on availability
   const suggestSeats = () => {
     const availableSeats = Array.from(
       { length: TOTAL_SEATS },
       (_, i) => i + 1
     ).filter((seat) => !bookedSeats.includes(seat));
 
-    // If no manual selection, default to first available block
-    if (manualSeats.length === 0) {
-      for (let i = 0; i <= availableSeats.length - selectedCount; i++) {
-        const chunk = availableSeats.slice(i, i + selectedCount);
+    // Helper to find available seats in the same row as a target
+    const getAvailableSameRowSeats = (targetSeat: number): number[] => {
+      const row = Math.floor((targetSeat - 1) / FULL_ROW_SIZE);
+      const rowStart = row * FULL_ROW_SIZE + 1;
+      const rowEnd = rowStart + FULL_ROW_SIZE - 1;
 
-        const isContinuous = chunk.every((seat, index) =>
-          index === 0 ? true : seat === chunk[index - 1] + 1
-        );
-
-        if (isContinuous) {
-          setSuggestedSeats(chunk);
-          setManualSeats([]);
-          return;
+      const sameRowSeats = [];
+      for (let i = rowStart; i <= rowEnd; i++) {
+        if (!bookedSeats.includes(i)) {
+          sameRowSeats.push(i);
+          if (sameRowSeats.length === selectedCount) break;
         }
       }
-      alert("No suitable continuous block found.");
+
+      return sameRowSeats.length === selectedCount ? sameRowSeats : [];
+    };
+
+    // Step 1: If no manual seat is selected, find best continuous block
+    if (manualSeats.length === 0) {
+      const bestBlock = findBestSeats(selectedCount);
+      if (bestBlock.length > 0) {
+        setSuggestedSeats(bestBlock);
+        setManualSeats([]);
+        return;
+      }
+
+      alert("No suitable block found.");
       return;
     }
 
-    // If manual seat is selected, suggest nearest continuous block
+    // Step 2: If manual seat is selected, prioritize same-row seats
     const targetSeat = manualSeats[0];
-    let bestChunk: number[] = [];
-    let minDistance = Infinity;
+    const sameRowSuggestion = getAvailableSameRowSeats(targetSeat);
 
-    for (let i = 0; i <= availableSeats.length - selectedCount; i++) {
-      const chunk = availableSeats.slice(i, i + selectedCount);
-
-      const isContinuous = chunk.every((seat, index) =>
-        index === 0 ? true : seat === chunk[index - 1] + 1
-      );
-
-      if (isContinuous) {
-        const distance = Math.abs(chunk[0] - targetSeat);
-        if (distance < minDistance) {
-          bestChunk = chunk;
-          minDistance = distance;
-        }
-      }
+    if (sameRowSuggestion.length > 0) {
+      setSuggestedSeats(sameRowSuggestion);
+      setManualSeats([]);
+      return;
     }
 
-    if (bestChunk.length > 0) {
-      setSuggestedSeats(bestChunk);
+    // Step 3: Fallback to scattered seats
+    const fallbackBlock = findBestSeats(selectedCount);
+    if (fallbackBlock.length > 0) {
+      setSuggestedSeats(fallbackBlock);
       setManualSeats([]);
     } else {
-      alert("No suitable continuous block found.");
+      alert("No suitable seats found.");
     }
   };
 
+  // Handles user manual seat selection
   const handleManualSelect = (startSeat: number) => {
     if (isSeatTaken(startSeat)) return;
 
     const selected: number[] = [];
     let current = startSeat;
 
-    // Try to gather 'selectedCount' seats starting from startSeat
+    // Try to collect desired number of seats starting from clicked seat
     while (selected.length < selectedCount && current <= TOTAL_SEATS) {
       if (!bookedSeats.includes(current)) {
         selected.push(current);
@@ -110,70 +109,99 @@ export default function SeatGrid({
       current++;
     }
 
-    // If not enough seats were found, just pick the starting seat
+    // If not enough were found, select only the clicked seat
     if (selected.length < selectedCount) {
       setManualSeats([startSeat]);
     } else {
       setManualSeats(selected);
     }
 
-    // Turn off suggestions when user manually chooses
+    // Clear suggestions
     setSuggestedSeats([]);
   };
 
+  // Utility functions for seat state
   const isSeatTaken = (seat: number) => bookedSeats.includes(seat);
   const isSuggested = (seat: number) => suggestedSeats.includes(seat);
   const isManual = (seat: number) => manualSeats.includes(seat);
 
+  // Returns appropriate className based on seat status
   const getSeatClass = (seat: number) => {
     if (isSeatTaken(seat)) return "bg-red-500 text-white cursor-not-allowed";
+
     const isContinuous =
       manualSeats[manualSeats.length - 1] - manualSeats[0] == selectedCount - 1;
+    const together = areSeatsTogether(manualSeats, FULL_ROW_SIZE);
 
     if (isManual(seat)) {
-      if (isContinuous) {
+      if (isContinuous && together) {
         return "bg-blue-400 text-white";
       } else {
         return "bg-yellow-400 text-white";
       }
     }
+
     if (isSuggested(seat)) {
-      const together = areSeatsTogether(suggestedSeats);
       return together ? "bg-green-500 text-white" : "bg-yellow-400 text-black";
     }
 
     return "bg-white hover:bg-gray-100";
   };
 
-  const areSeatsTogether = (seats: number[]) => {
+  // Checks if given seats are together in the same row and consecutive
+  const areSeatsTogether = (seats: number[], seatsPerRow: number) => {
     const sorted = [...seats].sort((a, b) => a - b);
+    const row = Math.floor(sorted[0] / seatsPerRow);
+    const allSameRow = sorted.every(seat => Math.floor((seat - 1) / seatsPerRow) === row);
+    if (!allSameRow) return false;
+
     return sorted.every((seat, i) =>
       i === 0 ? true : seat === sorted[i - 1] + 1
     );
   };
 
+  // Finds the best block of seats to suggest
   const findBestSeats = (count: number) => {
     const seats: number[] = [];
 
+    // 1. Try consecutive seats in same row
     for (let i = 1; i <= TOTAL_SEATS - count + 1; i++) {
       const block = Array.from({ length: count }, (_, k) => i + k);
       const inSameRow =
         Math.floor((i - 1) / FULL_ROW_SIZE) ===
         Math.floor((i + count - 2) / FULL_ROW_SIZE);
+
       if (inSameRow && block.every((seat) => !bookedSeats.includes(seat))) {
         return block;
       }
     }
 
-    // If no together block found, try scattered
+    // 2. Try non-consecutive seats in same row
+    for (let row = 0; row < TOTAL_SEATS / FULL_ROW_SIZE; row++) {
+      const rowStart = row * FULL_ROW_SIZE + 1;
+      const rowEnd = rowStart + FULL_ROW_SIZE - 1;
+
+      const availableInRow = [];
+      for (let i = rowStart; i <= rowEnd; i++) {
+        if (!bookedSeats.includes(i)) {
+          availableInRow.push(i);
+          if (availableInRow.length === count) return availableInRow;
+        }
+      }
+    }
+
+    // 3. Fallback: scattered seats anywhere
     for (let i = 1; i <= TOTAL_SEATS; i++) {
-      if (!bookedSeats.includes(i)) seats.push(i);
-      if (seats.length === count) return seats;
+      if (!bookedSeats.includes(i)) {
+        seats.push(i);
+        if (seats.length === count) return seats;
+      }
     }
 
     return [];
   };
 
+  // Renders individual seat button
   const renderSeatButton = (seatNum: number) => {
     return (
       <button
@@ -181,7 +209,7 @@ export default function SeatGrid({
         disabled={isSeatTaken(seatNum)}
         onClick={() => handleManualSelect(seatNum)}
         className={clsx(
-          " p-4 flex justify-center m-1 rounded-md border text-sm",
+          "p-4 flex justify-center m-1 rounded-md border text-sm",
           getSeatClass(seatNum)
         )}
       >
@@ -190,10 +218,11 @@ export default function SeatGrid({
     );
   };
 
+  // Renders all seat buttons
   const renderSeats = () => {
     const seats = [];
 
-    // Full 11 rows of 7
+    // First 11 full rows (7 seats each)
     for (let row = 0; row < FULL_ROW_COUNT; row++) {
       for (let col = 0; col < FULL_ROW_SIZE; col++) {
         const seatNum = row * FULL_ROW_SIZE + col + 1;
@@ -201,7 +230,7 @@ export default function SeatGrid({
       }
     }
 
-    // Last row of 3
+    // Final row with 3 seats
     for (let i = 0; i < LAST_ROW_SIZE; i++) {
       const seatNum = FULL_ROW_COUNT * FULL_ROW_SIZE + i + 1;
       seats.push(renderSeatButton(seatNum));
@@ -212,31 +241,28 @@ export default function SeatGrid({
 
   return (
     <div className="p-4 max-w-xl mx-auto">
-      <div className=" text-sm flex flex-wrap gap-4 leading-none">
+      {/* Seat legends */}
+      <div className="text-sm flex flex-wrap gap-4 leading-none">
         <p>
-          <span className="inline-block w-3 h-3 bg-green-500 mr-2 rounded-full"></span>{" "}
-          Suggested
+          <span className="inline-block w-3 h-3 bg-green-500 mr-2 rounded-full"></span> Suggested
         </p>
         <p>
-          <span className="inline-block w-3 h-3 bg-yellow-400 mr-2 rounded-full"></span>{" "}
-          Not together
-        </p>
-
-        <p>
-          <span className="inline-block w-3 h-3 bg-red-500 mr-2 rounded-full"></span>
-          Booked
+          <span className="inline-block w-3 h-3 bg-yellow-400 mr-2 rounded-full"></span> Not together
         </p>
         <p>
-          <span className="inline-block w-3 h-3 bg-blue-400 mr-2 rounded-full"></span>{" "}
-          Manually selected
+          <span className="inline-block w-3 h-3 bg-red-500 mr-2 rounded-full"></span> Booked
+        </p>
+        <p>
+          <span className="inline-block w-3 h-3 bg-blue-400 mr-2 rounded-full"></span> Manually selected
         </p>
       </div>
 
+      {/* Seat selection input */}
       <div className="mb-4 w-full mt-10">
         <label className="block font-medium mb-2">
           How many seats do you want?
         </label>
-        <div className="flex items-center ">
+        <div className="flex items-center">
           <input
             type="number"
             min={1}
@@ -245,10 +271,9 @@ export default function SeatGrid({
             value={selectedCount}
             onChange={(e) => setSelectedCount(Number(e.target.value))}
           />
-         
           <div className="flex flex-col items-center">
             <button
-              className=" px-4 py-2 bg-blue-500 border border-blue-500 text-white rounded-r "
+              className="px-4 py-2 bg-blue-500 border border-blue-500 text-white rounded-r"
               onClick={suggestSeats}
             >
               Suggest
@@ -256,11 +281,14 @@ export default function SeatGrid({
           </div>
         </div>
       </div>
-     
-      <p className="bg-gray-200 text-center rounded-lg w-fit justify-self-center py-1 px-4 mb-3 font-semibold">Engine</p>
 
-      <div className=" bg-gray-50 shadow-inner border rounded-xl p-4">
-        <div className="grid grid-cols-7 ">{renderSeats()}</div>
+      <p className="bg-gray-200 text-center rounded-lg w-fit justify-self-center py-1 px-4 mb-3 font-semibold">
+        Engine
+      </p>
+
+      {/* Render seat layout */}
+      <div className="bg-gray-50 shadow-inner border rounded-xl p-4">
+        <div className="grid grid-cols-7">{renderSeats()}</div>
       </div>
     </div>
   );
